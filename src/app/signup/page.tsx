@@ -2,10 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '../../lib/supabase/client'
 
 export default function SignupPage() {
-  const supabase = createClient()
   const router = useRouter()
 
   const [fullName, setFullName] = useState('')
@@ -16,8 +14,20 @@ export default function SignupPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!url || !key) {
+      setMessage('Missing Supabase environment variables.')
+      return
+    }
+
     setLoading(true)
     setMessage('')
+
+    const { createClient } = await import('../../lib/supabase/client')
+    const supabase = createClient()
 
     const { data, error } = await supabase.auth.signUp({
       email,
