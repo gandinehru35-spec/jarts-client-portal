@@ -1,9 +1,14 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "jarts-client-portal",
+  "main": ".open-next/worker.js",
   "compatibility_date": "2026-06-12",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
   "vars": {
     "NEXT_PUBLIC_SUPABASE_URL": "https://ucckwharmycnobjnfrlb.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjY2t3aGFybXljbm9iam5mcmxiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyMzM0OTUsImV4cCI6MjA5NjgwOTQ5NX0.p9YqVnKlf3cF6VznSAkPsXKfDqzkRYr8uL7Hh-e6L3s"
