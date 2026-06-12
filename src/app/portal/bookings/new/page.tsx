@@ -41,7 +41,7 @@ export default function NewBookingPage() {
       return
     }
 
-    setMessage('Booking submitted successfully!')
+    setMessage('Booking submitted!')
     setLoading(false)
     setTimeout(() => router.push('/portal'), 1500)
   }
@@ -53,8 +53,8 @@ export default function NewBookingPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input className="w-full rounded-lg bg-white/10 p-3" placeholder="Service type (e.g. Photo shoot)" value={serviceType} onChange={(e) => setServiceType(e.target.value)} required />
           <input className="w-full rounded-lg bg-white/10 p-3" type="date" value={requestedDate} onChange={(e) => setRequestedDate(e.target.value)} required />
-          <input className="w-full rounded-lg bg-white/10 p-3" placeholder="Preferred time (e.g. 9 pm)" value={requestedTime} onChange={(e) => setRequestedTime(e.target.value)} />
-          <button className="rounded-lg bg-red-600 px-5 py-3 font-semibold disabled:opacity-50" disabled={loading}>
+          <input className="w-full rounded-lg bg-white/10 p-3" placeholder="Preferred time (e.g. 2 pm)" value={requestedTime} onChange={(e) => setRequestedTime(e.target.value)} />
+          <button className="w-full rounded-lg bg-red-600 px-5 py-3 font-semibold disabled:opacity-50" disabled={loading}>
             {loading ? 'Submitting...' : 'Submit booking'}
           </button>
         </form>
