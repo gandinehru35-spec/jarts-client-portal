@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '../../../../lib/supabase/client'
 
 export default function NewBookingPage() {
-  const supabase = createClient()
-
   const [serviceType, setServiceType] = useState('')
   const [requestedDate, setRequestedDate] = useState('')
   const [requestedTime, setRequestedTime] = useState('')
@@ -13,6 +10,17 @@ export default function NewBookingPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!url || !key) {
+      setMessage('Missing Supabase environment variables.')
+      return
+    }
+
+    const { createClient } = await import('../../../../lib/supabase/client')
+    const supabase = createClient()
 
     const {
       data: { user },
