@@ -20,7 +20,7 @@ type BookingPayload = {
   source?: string;
 };
 
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://photography-repo.pages.dev';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://deb178ba.photography-repo.pages.dev/';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
