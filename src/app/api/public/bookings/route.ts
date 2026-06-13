@@ -20,7 +20,6 @@ type BookingPayload = {
   source?: string;
 };
 
-// REPLACE line 24 with:
 const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://photography-repo.pages.dev';
 
 const CORS_HEADERS = {
