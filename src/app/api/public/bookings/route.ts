@@ -20,8 +20,11 @@ type BookingPayload = {
   source?: string;
 };
 
+// REPLACE line 24 with:
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://photography-repo.pages.dev';
+
 const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://4ae9ff97.photography-repo.pages.dev',
+  'Access-Control-Allow-Origin': ALLOWED_ORIGIN,
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type',
 };
