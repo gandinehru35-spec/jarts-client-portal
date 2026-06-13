@@ -20,13 +20,23 @@ type BookingPayload = {
   source?: string;
 };
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': 'https://4ae9ff97.photography-repo.pages.dev',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 );
 
 function bad(message: string, status = 400) {
-  return NextResponse.json({ ok: false, error: message }, { status });
+  return NextResponse.json({ ok: false, error: message }, { status, headers: CORS_HEADERS });
 }
 
 export async function POST(req: NextRequest) {
@@ -142,43 +152,28 @@ export async function POST(req: NextRequest) {
       return bad(lineItemsError.message, 500);
     }
 
-    return NextResponse.json({
-      ok: true,
-      reference: bookingRequest.reference,
-      bookingRequestId: bookingRequest.id,
-      displayTotal: Number(body.displayTotal || total || 0),
-      calPayload: {
+    return NextResponse.json(
+      {
+        ok: true,
         reference: bookingRequest.reference,
-        email,
-        name: fullName,
-        notes: [
-          `Reference: ${bookingRequest.reference}`,
-          propertyAddress ? `Property: ${propertyAddress}` : null,
-          `Services: ${selectedServices.map((s) => `${s.service_name} ($${s.unit_price})`).join(', ')}`,
-          notes ? `Notes: ${notes}` : null,
-        ].filter(Boolean).join('\n'),
+        bookingRequestId: bookingRequest.id,
+        displayTotal: Number(body.displayTotal || total || 0),
+        calPayload: {
+          reference: bookingRequest.reference,
+          email,
+          name: fullName,
+          notes: [
+            `Reference: ${bookingRequest.reference}`,
+            propertyAddress ? `Property: ${propertyAddress}` : null,
+            `Services: ${selectedServices.map((s) => `${s.service_name} ($${s.unit_price})`).join(', ')}`,
+            notes ? `Notes: ${notes}` : null,
+          ].filter(Boolean).join('\n'),
+        },
       },
-    });
+      { headers: CORS_HEADERS }
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unexpected server error';
     return bad(message, 500);
   }
-}
-
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': 'https://4ae9ff97.photography-repo.pages.dev',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
-
-// Add an OPTIONS handler (browsers send this preflight):
-export async function OPTIONS() {
-  return new Response(null, { status: 204, headers: CORS_HEADERS });
-}
-
-// Then wrap your POST response — change the final return to:
-return NextResponse.json({ ok: true, ... }, { headers: CORS_HEADERS });
-// And all bad() calls too:
-function bad(message: string, status = 400) {
-  return NextResponse.json({ ok: false, error: message }, { status, headers: CORS_HEADERS });
 }
