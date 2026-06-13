@@ -164,3 +164,21 @@ export async function POST(req: NextRequest) {
     return bad(message, 500);
   }
 }
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': 'https://4ae9ff97.photography-repo.pages.dev',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+// Add an OPTIONS handler (browsers send this preflight):
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+// Then wrap your POST response — change the final return to:
+return NextResponse.json({ ok: true, ... }, { headers: CORS_HEADERS });
+// And all bad() calls too:
+function bad(message: string, status = 400) {
+  return NextResponse.json({ ok: false, error: message }, { status, headers: CORS_HEADERS });
+}

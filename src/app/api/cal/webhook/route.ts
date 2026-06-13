@@ -297,3 +297,25 @@ export async function POST(req: Request) {
     );
   }
 }
+
+function openCalBooking(data) {
+  const calPrefill = data?.calPayload || {};
+
+  // Poll for Cal readiness instead of assuming it's loaded
+  function tryOpen(attempts = 0) {
+    if (window.Cal && window.Cal.ns && window.Cal.ns['30min']) {
+      window.Cal.ns['30min']('modal', {
+        config: { layout: 'month_view', theme: 'dark' },
+        ...(calPrefill.name ? {
+          responses: { name: calPrefill.name, email: calPrefill.email, notes: calPrefill.notes }
+        } : {})
+      });
+    } else if (attempts < 10) {
+      setTimeout(() => tryOpen(attempts + 1), 300);
+    } else {
+      // graceful fallback
+      window.open(`https://cal.com/${calLink}`, '_blank');
+    }
+  }
+  tryOpen();
+}
