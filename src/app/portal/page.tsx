@@ -20,14 +20,16 @@ export default async function PortalPage() {
     .maybeSingle()
 
   const { data: bookings } = await supabase
-    .from('bookings')
-    .select('*')
-    .order('created_at', { ascending: false })
+  .from('bookings')
+  .select('*')
+  .eq('user_id', user.id)
+  .order('created_at', { ascending: false })
 
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false })
+const { data: orders } = await supabase
+  .from('orders')
+  .select('*')
+  .eq('profile_id', user.id)
+  .order('created_at', { ascending: false })
 
   return (
     <main className="min-h-screen bg-black text-white p-8">
