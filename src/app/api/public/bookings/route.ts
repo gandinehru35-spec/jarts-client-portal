@@ -32,6 +32,7 @@ export async function OPTIONS() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
+// Admin client — uses SERVICE_ROLE_KEY so it can create auth users + bypass RLS
 const supabase = createClient(
   process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -39,6 +40,52 @@ const supabase = createClient(
 
 function bad(message: string, status = 400) {
   return NextResponse.json({ ok: false, error: message }, { status, headers: CORS_HEADERS });
+}
+
+/**
+ * Find or create a Supabase AUTH user for this email.
+ * Returns the auth UID — which becomes the profile.id.
+ * This is the key link: booking → profile → auth user → portal.
+ */
+async function findOrCreateAuthUser(email: string, fullName: string, phone: string | null): Promise<string> {
+  // 1. Check if auth user already exists
+  const { data: listData } = await supabase.auth.admin.listUsers();
+  const existingUser = listData?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+
+  if (existingUser) {
+    // Update profile with latest details
+    await supabase.from('profiles').upsert({
+      id: existingUser.id,
+      email: email.toLowerCase(),
+      full_name: fullName,
+      phone,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'id' });
+    return existingUser.id;
+  }
+
+  // 2. Create new auth user — sends magic link / invite email automatically
+  const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    email: email.toLowerCase(),
+    email_confirm: true, // mark email as confirmed so they can log in immediately
+    user_metadata: { full_name: fullName },
+  });
+
+  if (createError || !newUser?.user) {
+    throw new Error(`Failed to create auth user: ${createError?.message}`);
+  }
+
+  // 3. Create matching profile row with auth UID as primary key
+  await supabase.from('profiles').upsert({
+    id: newUser.user.id,
+    email: email.toLowerCase(),
+    full_name: fullName,
+    phone,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'id' });
+
+  return newUser.user.id;
 }
 
 export async function POST(req: NextRequest) {
@@ -67,30 +114,8 @@ export async function POST(req: NextRequest) {
       return sum + price * qty;
     }, 0);
 
-    let profileId: string | null = null;
-
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('id, email')
-      .eq('email', email)
-      .maybeSingle();
-
-    if (existingProfile?.id) {
-      profileId = existingProfile.id;
-
-      const { error: profileUpdateError } = await supabase
-        .from('profiles')
-        .update({
-          full_name: fullName,
-          phone,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', profileId);
-
-      if (profileUpdateError) {
-        return bad(profileUpdateError.message, 500);
-      }
-    }
+    // KEY FIX: get the auth UID — this is what links bookings to the portal
+    const profileId = await findOrCreateAuthUser(email, fullName, phone);
 
     const reference = `REQ-${crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`;
 
